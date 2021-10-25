@@ -64,11 +64,11 @@ TEST(BufferPoolManagerInstanceTest, BinaryDataTest) {
   }
 
   // Scenario: After unpinning pages {0, 1, 2, 3, 4} we should be able to create 5 new pages
-  for (int i = 0; i < 1; ++i) {
+  for (int i = 0; i < 5; ++i) {
     EXPECT_EQ(true, bpm->UnpinPage(i, true));
     bpm->FlushPage(i);
   }
-  for (int i = 0; i < 1; ++i) {
+  for (int i = 0; i < 5; ++i) {
     EXPECT_NE(nullptr, bpm->NewPage(&page_id_temp));
     bpm->UnpinPage(page_id_temp, false);
   }
