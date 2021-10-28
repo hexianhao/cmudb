@@ -179,18 +179,21 @@ bool BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) {
 
 bool BufferPoolManagerInstance::UnpinPgImp(page_id_t page_id, bool is_dirty) {
   std::lock_guard<std::mutex> lg(latch_);
-  frame_id_t frame_id = page_table_[page_id];
-  Page *page = &pages_[frame_id];
-  if (page->pin_count_ <= 0) return false;
-  page->pin_count_ -= 1;
-  if (page->pin_count_ == 0) {
-    // pin_count == 0 means the page can be removed from buffer pool
-    page_table_.erase(page_id);
-    page->is_dirty_ = is_dirty;
-    // unpin in replacer
-    replacer_->Unpin(frame_id);
+  if (page_table_.find(page_id) != page_table_.end()) {
+    frame_id_t frame_id = page_table_[page_id];
+    Page *page = &pages_[frame_id];
+    if (page->pin_count_ <= 0) return false;
+    page->pin_count_ -= 1;
+    if (page->pin_count_ == 0) {
+      // pin_count == 0 means the page can be removed from buffer pool
+      page_table_.erase(page_id);
+      page->is_dirty_ = is_dirty;
+      // unpin in replacer
+      replacer_->Unpin(frame_id);
+    }
+    return true;
   }
-  return true;
+  return false;
 }
 
 page_id_t BufferPoolManagerInstance::AllocatePage() {
